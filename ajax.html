@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title></title>
+		<style>
+			
+		</style>
+		<script src="./jquery.js"></script>
+		<script>
+			
+		</script>
+	</head>
+
+	<body>
+		test
+		<input type="button" value="获取数据" id="btn" />
+		<input type="button" value="获取数据get" id="btn2" />
+		<span id="message"></span>
+		<script>
+			/*
+
+				参数说明：
+					{
+						method:  get 默认 @String
+							发送方式  
+							post|get  
+						url:地址 *   @String  
+							发送地址
+						asyn:  true 默认   @Boolean
+							是否是异步  
+							true 异步  false 同步 
+
+						data: {} 默认 @Object
+							要发送的数据
+
+						success: function(){}  @Function
+							请求成功执行的函数
+						error: function(){}  @Function
+							请求错误的时候执行的函数
+					}
+			*/
+
+			function ajax(options){
+
+				//把传过来的参数复制一份
+
+				var defaults = {
+					method:"get",
+					asyn:true,
+					dataType:"text",
+					data:{},
+					success:null,
+					error:null
+				}
+
+				$.extend(true,defaults,options);
+
+				//处理一下data {key:value} => key=val
+				// {key:value,key1=value1} => key=val&key1=value1
+
+				var str = '';
+
+				for( var attr in defaults.data ){
+					str += attr + '=' + defaults.data[attr] + "&";
+				}
+
+				str = str.slice(0,-1);
+
+
+				var xhr = new XMLHttpRequest();
+
+				if( defaults.method.toLowerCase() === "get" ){
+					defaults.url = defaults.url + "?" + str;
+				}
+
+				xhr.open(defaults.method,defaults.url,defaults.asyn);	
+				xhr.onload = function (){
+					if( xhr.status === 200 ){
+						//xhr.responseText  //从服务器拿到数据
+
+						//从服务器拿到的数据是为字符串的，在这个函数之外提供一个dataType的参数，如果这个参数设置为json，那么返回的是吧json字符串解析之后的对象；提供的是text这个参数，依然返回字符串
+						var data = xhr.responseText;
+						if( defaults.dataType === "json" ){
+							data = JSON.parse(data);
+						}
+
+						typeof defaults.success === "function" && defaults.success(data);
+
+					}else{
+						typeof defaults.error === "function" && defaults.error(xhr.status,xhr.statusText);
+					}
+				}
+
+				if( defaults.method.toLowerCase() === "get" ){
+					xhr.send();
+				}else if( defaults.method.toLowerCase() === "post" ){
+					xhr.setRequestHeader("Content-Type",'application/x-www-form-urlencoded');
+					xhr.send(str);
+				}
+			}
+
+			btn.onclick = function (){
+				ajax({
+					url:"./php/post_json.php",
+					method:"post",
+					dataType:"json",
+					data:{user:"leo",age:30},
+					success:function (data){
+						//console.log(data);
+					},
+					error:function (status,statusText){
+						//console.log( status,statusText );	
+					}
+				})
+			};
+
+			btn2.onclick = function (){
+				ajax({
+					url:"./php/get_json.php",
+					data:{user:"momo",age:30},
+					success:function (data){
+						//console.log(data);	
+					},
+					error:function (status,statusText){
+						//console.log( status,statusText );	
+					}
+				})	
+			};
+		</script>
+	</body>
+</html>
